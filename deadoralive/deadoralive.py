@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3.6
 """A script that checks client sites for dead links.
 
 Gets lists of links to be checked from a client site, checks the links to see
@@ -34,6 +34,7 @@ def get_resources_to_check(client_site_url, apikey):
     """
     url = client_site_url + u"deadoralive/get_resources_to_check"
     response = requests.get(url, headers=dict(Authorization=apikey))
+
     if not response.ok:
         raise CouldNotGetResourceIDsError(
             u"Couldn't get resource IDs to check: {code} {reason}".format(
@@ -68,7 +69,7 @@ def get_url_for_id(client_site_url, apikey, resource_id):
     return response.json()
 
 
-def check_url(url):
+def check_url(url, apikey):
     """Check whether the given URL is dead or alive.
 
     Returns a dict with four keys:
@@ -88,9 +89,11 @@ def check_url(url):
     HTTP response.
 
     """
+
     result = {"url": url}
+
     try:
-        response = requests.get(url)
+        response = requests.get(url, headers=dict(Authorization=apikey))
         result["status"] = response.status_code
         result["reason"] = response.reason
         response.raise_for_status()  # Raise if status_code is not OK.
@@ -197,7 +200,7 @@ def get_check_and_report(client_site_url, apikey, get_resource_ids_to_check,
             logger.info(u"This link checker was not authorized to access "
                         "resource {0}, skipping.".format(resource_id))
             continue
-        result = check_url(url)
+        result = check_url(url, apikey)
         status = result["status"]
         reason = result["reason"]
         if result["alive"]:
